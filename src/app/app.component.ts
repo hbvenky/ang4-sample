@@ -1,71 +1,71 @@
-import { Component } from '@angular/core';
-import { DataService } from './data.service';
+import { Component, OnDestroy } from '@angular/core';
+import { AuthService } from "angular2-social-login";
 
 @Component({
-  selector: 'app-root',
-  // templateUrl: './app.component.html',
-  template: `  	
-  	<h2 [class]="titleClass" [ngStyle]="titleStyles">Hello world!</h2>
-  	<p>Author: {{myObj.name}}<p>
-  	<ul>
-  		<li [ngClass]="cndCls" *ngFor="let dpt of myArr">{{dpt}}</li>
-  	</ul>
-  	<p *ngIf="cnd then yes else no"></p>
-  	<ng-template #yes>Yes it is</ng-template>
-  	<ng-template #no>No it is not</ng-template>
-  	<br>  	
-  	<img src="{{imgSrc}}">
-  	<img [src]="imgSrc">
-  	<img bind-src="imgSrc">
-  	<br>
-  	  <p>Service data: {{someProperty}} </p>
-  	<br>
-  	<button [disabled]="btnSts" (click)="myEvent($event)">My Button</button>
-  `,
-  // styleUrls: ['./app.component.css']
+  selector: 'my-app',
+  template: `<div class="main-div"><h1>Social login</h1>{{status}}
+              <button (click)="signIn('google')"><img src="/assets/images/gplus.png"></button>
+              <button (click)="signIn('facebook')"><img src="/assets/images/facebook.png"></button>
+              <span>--</span>
+              <button (click)="logout()"><img src="/assets/images/logout.png"></button>
+              </div>
+              <div *ngIf="user" class="user-div">
+                <table>
+                  <tr>
+                    <td class='label'>Name:</td>
+                    <td>{{user.name}}</td>
+                  </tr>
+                  <tr>
+                    <td class='label'>Email:</td>
+                    <td>{{user.email}}</td>
+                  </tr>
+                  <tr>
+                    <td class='label'>UID:</td>
+                    <td>{{user.uid}}</td>
+                  </tr>
+                  <tr>
+                    <td class='label'>Provider:</td>
+                    <td>{{user.provider}}</td>
+                  </tr>
+                  <tr>
+                    <td class='label'>Image:</td>
+                    <td><img src="{{user.image}}"></td>
+                  </tr>
+                </table>
+              </div>
+              `,
   styles: [`
-  	h2{text-decoration: underline;}
-  	button{background: red;}
-  	.title-class{color: blue;}
-  	.cdn-cls{color: green;}
+    h1, span{color: #10c8ff;}
+    .main-div{border: 1px solid grey; margin: 15px 0 0 36%; width: 300px; padding: 0 20px 20px;background: #000;box-shadow: 5px 8px #10c8ff;}
+    button{cursor: pointer;}
+    .user-div{width: 300px; height: auto; border: 1px solid grey;margin: 15px 0 0 36%;}
+    .label{color: #3e40c1;}
   `]
+
 })
-export class AppComponent {
-  // Data interpolation
-  title = 'ang4 app';
-  myObj = {
-  	name: 'Venky',
-  	age: 32
-  };
-  myArr = ['mobile', 'web', 'testing'];
-  cnd = false;
-
-  // Property binding
-  imgSrc = "favicon.ico";
-  btnSts = false;
-
-  // Event binding
-  myEvent(event){
-  	console.log('Event binding works');
+export class AppComponent implements OnDestroy {
+  public user;
+  sub: any;
+  constructor(public _auth: AuthService){ }  
+  signIn(provider){    
+    this.sub = this._auth.login(provider).subscribe(
+      (data) => {        
+        this.user=data;
+      }
+    )
   }
 
-  // CSS class binding
-  titleClass = 'title-class';
-  cndCls = {'cdn-cls':true};
+  logout(){    
+    this._auth.logout().subscribe(
+      (data)=>{
+        this.user=null;
+        alert("Loout successfully");
+      }
+    )
+  }
 
-  // Style binding
-  titleStyles = {
-  	'font-size': '3em',
-  	'font-family': 'Arial'
-  };
-
-  //Services
-  constructor(public dataService:DataService){}
-
-  someProperty;
-  ngOnInit(){
-  	console.log(this.dataService.cars);
-  	this.someProperty = this.dataService.myData
-  };
+  ngOnDestroy(){
+    this.sub.unsubscribe();
+  }
 
 }
